@@ -1,6 +1,5 @@
 const express = require('express')
 const fetch = require('node-fetch')
-const Jimp = require('jimp')
 const app = express()
 
 async function getAvatarUrl(userId) {
@@ -20,37 +19,16 @@ app.get('/avatar/:userId', async (req, res) => {
     }
 })
 
-app.get('/donationcard/:donatorId/:raiserId/:amount/:donatorName/:raiserName', async (req, res) => {
+app.get('/bothAvatars/:donatorId/:raiserId', async (req, res) => {
     try {
-        const { donatorId, raiserId, amount, donatorName, raiserName } = req.params
-
-        const donatorAvatarUrl = await getAvatarUrl(donatorId)
-        const raiserAvatarUrl = await getAvatarUrl(raiserId)
-
-        const width = 600
-        const height = 200
-
-        const card = new Jimp(width, height, 0x1a0000ff)
-
-        const donatorImg = await Jimp.read(donatorAvatarUrl)
-        const raiserImg = await Jimp.read(raiserAvatarUrl)
-
-        donatorImg.resize(100, 100).circle()
-        raiserImg.resize(100, 100).circle()
-
-        card.composite(donatorImg, 60, 50)
-        card.composite(raiserImg, 440, 50)
-
-        const buffer = await card.getBufferAsync(Jimp.MIME_PNG)
-        res.setHeader('Content-Type', 'image/png')
-        res.send(buffer)
-
+        const donatorUrl = await getAvatarUrl(req.params.donatorId)
+        const raiserUrl = await getAvatarUrl(req.params.raiserId)
+        res.json({ donatorUrl, raiserUrl })
     } catch (err) {
-        console.error(err)
-        res.status(500).json({ error: 'Failed to generate card' })
+        res.status(500).json({ error: 'Failed' })
     }
 })
 
-app.listen(3000, () => console.log('Running on port 3000'))
+app.listen(process.env.PORT || 3000, () => console.log('Running'))
 
 
